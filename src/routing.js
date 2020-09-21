@@ -65,8 +65,12 @@ export class Link {
 	constructor(props = []) {
 		this.props = props
 	}
-	to($url, $string) {
-		return `<a ${this.props} href="${$url}" lavosted="link">${$string}</a>`
+	to($url, $string, type) {
+		if(type) {
+			return `<a ${this.props} href="${$url}" lavosted="link" async="true">${$string}</a>`
+		}else{
+			return `<a ${this.props} href="${$url}" lavosted="link">${$string}</a>`
+		}
 	}
 }
 
@@ -76,58 +80,65 @@ export class Routing {
 		this.ConfigRoute = ConfigRoute
 	}
 	rendering(ElementApp) {
-		// running a routing
-		class Filtered {
-			constructor($Array = [], Find = '') {
-				this.array = $Array
-				this.find = Find
-			}
-			run() {
-				return this.array.find((DataRoute, KeyRoute) => {
-					// define variable detection typedata
-					let Path 		= typeof DataRoute.path,
-						Title 		= typeof DataRoute.title,
-						BeforeMount = typeof DataRoute.template().beforeMount,
-						Mount 		= typeof DataRoute.template().componentDidMount,
-						State 		= typeof DataRoute.template().state,
-						Render 		= typeof DataRoute.template().render;
-					if((DataRoute.path + '/').match(this.find)) {
-						if(Path == 'string' && Title == 'string' && BeforeMount == 'function' && Mount == 'function' && State == 'object' && Render == 'function') {
-							return true
-						}
-						else
-							throw Error('please check type data in your routing')
-					}
-				})
-			}
-		}
-		let BaseUrl = window.location.origin, PathUrl = window.location.pathname,
+		let TemplateIntegrated = this.ConfigRoute.templateIntegratedRouting.template(),
+			BaseUrl = window.location.origin, PathUrl = window.location.pathname,
 			RenderElement = document.body.querySelector(ElementApp),
 			FilterPathUrl = Core.FindingData(this.DefineOwnRoute, PathUrl).run(),
+			CheckAppRouting = (OnTrue) => {
+				if(document.querySelectorAll('app-routing').length === 1){
+					OnTrue()
+				}
+				if(document.querySelectorAll('app-routing').length >= 2 || document.querySelectorAll('app-routing').length <= 0){
+					RenderElement.remove()
+					throw Error('query "app-routing" no more than 2 or more or nothing. Must be have 1 element.')
+				}
+			},
 			Started = () => {
 				// check object
 				if(typeof FilterPathUrl === 'object') {
 					let ComponentReady = FilterPathUrl.template(),
 					EventClickChangePage = () => {
-						// event click link
-						L('a[lavosted="link"]').on('click', e => {
-							e.preventDefault()
-							OnChangePage(e);
+						document.querySelectorAll('a[lavosted="link').forEach(DataQuery => {
+							DataQuery.addEventListener('click', e => {
+								e.preventDefault()
+								if(e.target.getAttribute('href') !== window.location.pathname) {
+									OnChangePage(e);
+								}
+							})
 						})
 					},
-					// ketika dom diload
+					EventClickAsync = () => {
+						document.querySelectorAll('a[lavosted="link"][async="true"]').forEach(DataQuery => {
+							DataQuery.addEventListener('click', e => {
+								e.preventDefault()
+								if(e.target.getAttribute('href') !== window.location.pathname) {
+									OnChangePage(e);
+								}
+							})
+						})
+					},
+					// before loaded
 					OnMount = window.addEventListener('DOMContentLoaded', event => {
 						if(ComponentReady.DOMContentLoaded){
 							ComponentReady.DOMContentLoaded()
 						}
 					}),
-					// ketika halaman sudah dimuat
+					// loaded
 					MountStart = window.addEventListener('load', event => {
 						let PushElement = RenderElement ? function(){
 							ComponentReady.beforeMount()
 							document.title = FilterPathUrl.title
+							Core.CreateComponent('app-routing', () => {}, () => {})
 							Core.CreateComponent(ComponentReady.name, () => ComponentReady.componentDidMount(), () => ComponentReady.componentWillmount())
-							Core.CreateElement({name: ComponentReady.name,type: ['innerHTML'],data: [ComponentReady.render()],query: ElementApp})
+							Core.CreateElement({
+								name: 'div',
+								type: ['innerHTML'],
+								data: [TemplateIntegrated],
+								query: ElementApp
+							})
+							CheckAppRouting(() => {
+								Core.CreateElement({name: ComponentReady.name,type: ['innerHTML'],data: [ComponentReady.render()],query: ElementApp + ' app-routing'})
+							})
 						}: function(){
 							throw TypeError(`not founds element with query ${ElementApp}. solutions => "<div id="${ElementApp}"></div>"`)
 						}
@@ -149,16 +160,16 @@ export class Routing {
 										window.history.pushState(ComponentReadyClick.state,ComponentReadyClick.title,e.target.getAttribute('href'))
 										document.title = RunningClick.title;
 										let PushElement = RenderElement ? function() {
-											if(!customElements.get(ComponentReadyClick.name)) {
-												Core.CreateComponent(ComponentReadyClick.name, () => ComponentReadyClick.componentDidMount(), () => ComponentReadyClick.componentWillmount())
-											}
-											Core.CreateElement({
-												name: ComponentReadyClick.name,
-												type: ['innerHTML'],
-												data: [ComponentReadyClick.render()],
-												query: ElementApp
+											Core.CreateComponent(ComponentReadyClick.name, () => ComponentReadyClick.componentDidMount(), () => ComponentReadyClick.componentWillmount())
+											CheckAppRouting(() => {
+												Core.CreateElement({
+													name: ComponentReadyClick.name,
+													type: ['innerHTML'],
+													data: [ComponentReadyClick.render()],
+													query: ElementApp + ' app-routing'
+												})	
 											})
-											EventClickChangePage()
+											EventClickAsync()
 										}: function() {
 											throw TypeError(`not founds element with query ${ElementApp}. solutions => "<div id="${ElementApp}"></div>"`)
 										}
@@ -176,7 +187,6 @@ export class Routing {
 					throw Error('the route not same with url now')
 				}
 			}
-		Core.CreateComponent('app-routing', () => {}, () => {})
 		Started()
 	}
 }
