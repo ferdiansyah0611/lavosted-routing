@@ -22,12 +22,8 @@ Core.CreateComponent = (NameElement, ComponentDidMount, ComponentWillmount) => {
 	  	disconnectedCallback() {
 	  	  ComponentWillmount()
 	  	}
-	  	adoptedCallback() {
-	  	  console.log('Custom square element moved to new page.');
-	  	}
-	  	attributeChangedCallback(name, oldValue, newValue) {
-	  	  console.log('Custom square element attributes changed.');
-	  	}
+	  	adoptedCallback() {}
+	  	attributeChangedCallback(name, oldValue, newValue) {}
 	}
 	if(!customElements.get(NameElement)) {
 		customElements.define(NameElement, Reactivty);
