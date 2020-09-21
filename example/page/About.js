@@ -30,7 +30,19 @@ class About extends Component{
 	// template html
 	render() {
 		return (
-			`<h2>Halaman index ${new Link(['class="bootstap"']).to('/library/lavosted.routing', 'To Home Page')}</h2>`
+			`
+			<div class="col-12 mt-4">
+				<div class="col-md-6 offset-3">
+					<div class="card">
+						<div class="card-body">
+							<p class="h1">Page About
+							${new Link(['class="nav-link"']).to('/library/lavosted.routing', 'Home', true)}
+							</p>
+						</div>
+					</div>
+				</div>
+			</div>
+			`
 		)
 	}
 }
