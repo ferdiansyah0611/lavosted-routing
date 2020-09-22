@@ -13,45 +13,43 @@ Errors.Notfounds = () => {
 }
 class RouteTemplate{
 	template() {
+		document.body.style.backgroundColor = 'var(--bs-indigo)'
+		const example = new SubComponent('app-nav', {
+			beforeMount: () => {
+			},
+			componentWillmount: () => {
+			},
+			componentDidMount: () => {
+			},
+			render: () => {
+				return (`
+					<nav class="navbar navbar-expand-lg navbar-light bg-white">
+  					<div class="container-fluid">
+  					  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo03" aria-controls="navbarTogglerDemo03" aria-expanded="false" aria-label="Toggle navigation">
+  					    <span class="navbar-toggler-icon"></span>
+  					  </button>
+  					  <a class="navbar-brand" href="#">Lavosted</a>
+  					  <div class="collapse navbar-collapse" id="navbarTogglerDemo03">
+  					    <ul class="navbar-nav mr-auto mb-2 mb-lg-0">
+  					      <li class="nav-item">
+  					        ${new Link(['class="nav-link"']).to('/library/lavosted.routing', 'Home')}
+  					      </li>
+  					      <li class="nav-item">
+  					        ${new Link(['class="nav-link"']).to('/library/lavosted.routing/about', 'Docs')}
+  					      </li>
+  					    </ul>
+  					    <form class="d-flex">
+  					      <input class="form-control mr-2" type="search" placeholder="Search" aria-label="Search">
+  					      <button class="btn btn-outline-primary" type="submit">Search</button>
+  					    </form>
+  					  </div>
+  					</div>
+					</nav>
+				`)
+			}
+		}).start
 		return (
-			`
-			${new SubComponent('example-component', {
-				beforeMount: () => {
-				},
-				componentWillmount: () => {
-				},
-				componentDidMount: () => {
-					console.log('mount sub-component')
-				},
-				render: () => {
-					return (`
-						<example-component>
-						<nav class="navbar navbar-expand-lg navbar-light bg-light">
-  						<div class="container-fluid">
-  						  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo03" aria-controls="navbarTogglerDemo03" aria-expanded="false" aria-label="Toggle navigation">
-  						    <span class="navbar-toggler-icon"></span>
-  						  </button>
-  						  <a class="navbar-brand" href="#">Navbar</a>
-  						  <div class="collapse navbar-collapse" id="navbarTogglerDemo03">
-  						    <ul class="navbar-nav mr-auto mb-2 mb-lg-0">
-  						      <li class="nav-item">
-  						        ${new Link(['class="nav-link"']).to('/library/lavosted.routing', 'Home')}
-  						      </li>
-  						      <li class="nav-item">
-  						        ${new Link(['class="nav-link"']).to('/library/lavosted.routing/about', 'Page')}
-  						      </li>
-  						    </ul>
-  						    <form class="d-flex">
-  						      <input class="form-control mr-2" type="search" placeholder="Search" aria-label="Search">
-  						      <button class="btn btn-outline-success" type="submit">Search</button>
-  						    </form>
-  						  </div>
-  						</div>
-						</nav>
-						</example-component>
-					`)
-				}
-			}).start}
+			`${example}
 			<app-routing></app-routing>
 			`
 		)

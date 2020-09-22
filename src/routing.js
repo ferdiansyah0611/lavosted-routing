@@ -97,6 +97,7 @@ export class Routing {
 						document.querySelectorAll('a[lavosted="link').forEach(DataQuery => {
 							DataQuery.addEventListener('click', e => {
 								e.preventDefault()
+								e.target.classList.add('active')
 								if(e.target.getAttribute('href') !== window.location.pathname) {
 									OnChangePage(e);
 								}
@@ -152,7 +153,7 @@ export class Routing {
 									OnMount = setTimeout(() => {
 										ComponentReadyClick.beforeMount()
 									}),
-									MountStart = () => {
+									MountStart = setTimeout(() => {
 										window.history.pushState(ComponentReadyClick.state,ComponentReadyClick.title,e.target.getAttribute('href'))
 										document.title = RunningClick.title;
 										let PushElement = RenderElement ? function() {
@@ -170,12 +171,46 @@ export class Routing {
 											throw TypeError(`not founds element with query ${ElementApp}. solutions => "<div id="${ElementApp}"></div>"`)
 										}
 										PushElement()
-									}
-									MountStart()
+									})
 								}
 							}
 						StartedClick()
+					},
+					OnHash = () => {
+						let ListRoute = this.DefineOwnRoute
+						window.addEventListener('popstate', function(event) {
+							setTimeout(() => {
+							  let RunPop = Core.FindingData(ListRoute, window.location.pathname).run()
+							  if(typeof RunPop === 'object') {
+							  	document.body.querySelector(ElementApp).querySelector('app-routing').innerHTML = ''
+									let ComponentReadyPop = RunPop.template(),
+									OnMount = setTimeout(() => {
+										ComponentReadyPop.beforeMount()
+									}),
+									MountStart = setTimeout(() => {
+										window.history.replaceState(ComponentReadyPop.state,ComponentReadyPop.title,null)
+										document.title = RunPop.title;
+										let PushElement = RenderElement ? function() {
+											Core.CreateComponent(ComponentReadyPop.name, () => ComponentReadyPop.componentDidMount(), () => ComponentReadyPop.componentWillmount())
+											CheckAppRouting(() => {
+												Core.CreateElement({
+													name: ComponentReadyPop.name,
+													type: ['innerHTML'],
+													data: [ComponentReadyPop.render()],
+													query: ElementApp + ' app-routing'
+												})	
+											})
+											EventClickAsync()
+										}: function() {
+											throw TypeError(`not founds element with query ${ElementApp}. solutions => "<div id="${ElementApp}"></div>"`)
+										}
+										PushElement()
+									})
+							  }
+							})
+						}, false);
 					}
+					OnHash()
 				}
 				if(typeof FilterPathUrl === 'undefined') {
 					Core.CreateComponent('app-error', () => {}, () => {})
@@ -209,6 +244,6 @@ export class SubComponent{
 		this.name = NameComponent
 		this.ActionCallBack = ActionCallBack
 		Core.CreateComponent(this.name, () => this.ActionCallBack.componentDidMount(), () => this.ActionCallBack.componentWillmount())
-		this.start = this.ActionCallBack.render()
+		this.start = `<${this.name}>` + this.ActionCallBack.render() + `</${this.name}>`
 	}
 }
