@@ -26,12 +26,14 @@ class About extends Component{
 	// mounted
 	componentDidMount() {
 		console.log('mounted')
+		return true;
 	}
 	// template html
 	render() {
 		return (
 			`
-			<div class="col-12 mt-4">
+			<section class="section mt-3">
+  			<div class="container">
 				<div class="col-md-6 offset-3">
 					<div class="card">
 						<div class="card-body">
@@ -42,6 +44,7 @@ class About extends Component{
 					</div>
 				</div>
 			</div>
+			</section>
 			`
 		)
 	}
