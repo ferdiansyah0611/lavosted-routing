@@ -5,15 +5,26 @@ import {
 } from '../../src/routing'
 
 class About extends Component{
-	constructor() {
-		super()
+	constructor(name/*params*/) {
+		super({
+			name: name,
+			state: {
+				data: [
+					{id: 1},
+					{id: 2}
+				]
+			}
+		})
 		this.state = {
 			data: [
 				{id: 1},
 				{id: 2}
 			]
 		}
-		this.name = 'app-about'
+		super.state()
+		this.name = name
+		console.log(super.state())
+		/*this.params = params*/
 	}
 	// before mounted started
 	beforeMount() {
@@ -25,8 +36,14 @@ class About extends Component{
 	}
 	// mounted
 	componentDidMount() {
-		console.log('mounted')
-		return true;
+		console.log(this)
+		return new Promise((resolve, reject) => {
+			console.log('mounted')
+			resolve({data: () => {}})
+		})
+	}
+	ready() {
+
 	}
 	// template html
 	render() {
@@ -38,7 +55,7 @@ class About extends Component{
 					<div class="card">
 						<div class="card-body">
 							<p class="h1">Page About
-							${new Link(['class="nav-link"']).to('/library/lavosted.routing', 'Home', true)}
+							${Link(['class="nav-link"']).to('/library/lavosted.routing', 'Home', true)}
 							</p>
 						</div>
 					</div>
