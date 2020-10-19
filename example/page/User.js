@@ -1,58 +1,50 @@
 import {
 	Component,
 	Link,
-	Routing
+	Routing,
+	SubComponent,
+	Core
 } from '../../src/routing.js'
 
-class About extends Component{
-	constructor(name/*params*/) {
+class User extends Component{
+	constructor(name, params) {
 		super({
 			name: name,
-			state: {
-				data: [
-					{id: 1},
-					{id: 2}
-				]
-			}
+			params: params,
+			state: {data: [],app: 3, single: 1}
 		})
-		this.state = {
-			data: [
-				{id: 1},
-				{id: 2}
-			]
-		}
-		super.state()
 		this.name = name
-		console.log(super.state())
-		/*this.params = params*/
+		this.params = params
+		console.log(super.options)
 	}
 	// before mounted started
 	beforeMount() {
-		return 'before mount'
+		console.log('before mount')
 	}
 	// after mount
 	componentWillmount() {
-		console.log('change page')
+		console.log('wil mount')
 	}
 	// mounted
 	componentDidMount() {
-		console.log(this)
+		console.log('mount')
 		return new Promise((resolve, reject) => {
-			console.log('mounted')
-			resolve({data: () => {}})
+			resolve({data: () => {
+			}})
 		})
 	}
 	ready() {
-
+		L('p').on('click', e => console.log(e))
 	}
 	// template html
 	render() {
 		return (
-			`<section class="section" style="margin-top: 4rem!important;">
+		`
+		<section class="section" style="margin-top: 4rem!important;">
 		  	<div class="container-sm">
 		  		<div class="row">
 		  			<div class="col-12 col-lg-6 offset-lg-3 text-center p-2 shadow-lg bg-white">
-			  			<p class="text-center" style="font-size: 20px;font-weight: 600;">About</p>
+			  			<p class="text-center" style="font-size: 20px;font-weight: 600;">User ${this.params}</p>
 			  			<p>
 			  				Lavosted is framework javascript using pure javascript and used to create web app without library or packages.
 			  			</p>
@@ -62,9 +54,9 @@ class About extends Component{
 		  		</div>
 		  	</div>
 		  </section>
-			`
+		  `
 		)
 	}
 }
 
-export default About;
+export default User;
