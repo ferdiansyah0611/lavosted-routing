@@ -163,8 +163,6 @@ Core.FindingData = (DataArray, DataFind, DataType) => {
 								// console.log(resultingNumber)
 								// console.log(filterNumber)
 								// console.log(arrayFound)
-							}else{
-								throw Error('OK')
 							}
 						}
 					})
