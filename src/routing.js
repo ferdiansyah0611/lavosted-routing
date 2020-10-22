@@ -149,7 +149,7 @@ Core.FindingData = (DataArray, DataFind, DataType) => {
 											if(keyFilter === keyNum && dataFilter.toString()) {
 												// console.log(DataRoute)
 												// change
-												console.log(dataFilter.toString())
+												console.log(dataFilter)
 												arrayFound = DataRoute
 												arrayFound.path = stringdata.split('<Number>').join(dataFilter.toString())
 												// arrayFound.path = stringdata.slice(0, stringdata.match(number)['index']) + dataFilter.toString() + stringdata.slice(stringdata.match(number)['index'] + number.length, stringdata.length)
@@ -173,26 +173,7 @@ Core.FindingData = (DataArray, DataFind, DataType) => {
 	return new Filtered(DataArray, DataFind, DataType)
 }
 
-var namemiddleware = []
-
-export const useAuth = () => {
-
-}
-
-class Auth{
-	constructor(token = '', userdata = {}) {
-		this.token = token
-		this.user = userdata
-	}
-	register(){
-		window.localStorage.setItem('user-account', userdata)
-	}
-	login(){
-
-	}
-}
-
-var passworddb = ''
+var namemiddleware = [], passworddb = ''
 
 export class Routing {
 	constructor(DefineOwnRoute = [], ConfigRoute = {}) {
@@ -204,28 +185,27 @@ export class Routing {
 		})
 	}
 	rendering(ElementApp) {
-		if(this.ConfigRoute.hasOwnProperty('BasePath') && this.ConfigRoute.hasOwnProperty('templateIntegratedRouting') && this.ConfigRoute.hasOwnProperty('AppName') && this.ConfigRoute.hasOwnProperty('Type') && this.ConfigRoute.hasOwnProperty('PageError') && typeof ElementApp === 'string') {
-			if(this.ConfigRoute.hasOwnProperty('extends')) {
-				if(this.ConfigRoute.extends.Auth) {
-					var authExtends = this.ConfigRoute.extends.Auth;
-					authExtends.middleware.forEach(dataMiddleware => {
-						namemiddleware.push(dataMiddleware)
-					})
-				}
-			}
+		if(this.ConfigRoute.hasOwnProperty('BasePath') && this.ConfigRoute.hasOwnProperty('templateIntegratedRouting') && this.ConfigRoute.hasOwnProperty('AppName') && this.ConfigRoute.hasOwnProperty('Mode') && this.ConfigRoute.hasOwnProperty('PageError') && typeof ElementApp === 'string') {
 			let TemplateIntegrated = this.ConfigRoute.templateIntegratedRouting.template(),
 			BaseUrl = window.location.origin, PathUrl = window.location.pathname,
 			RenderElement = document.body.querySelector(ElementApp),
 			FilterPathUrl = '',
 			componentReady = '',
+			debug = (type, ...data) => {
+				if(this.ConfigRoute.Mode === 'development'){
+					data.forEach(dataDebug => {
+						console[type](dataDebug)
+					})
+				}
+			},
 			UIError = (append) => {
-			Core.CreateComponent('app-error', () => {}, () => {})
-			Core.CreateElement({name: 'app-error',type: ['innerHTML'],data: [append],query: ElementApp})
-			throw TypeError(`the class ${componentReady.constructor.name} is not inheritance of class Component`)
+				Core.CreateComponent('app-error', () => {}, () => {})
+				Core.CreateElement({name: 'app-error',type: ['innerHTML'],data: [append],query: ElementApp})
+				throw TypeError(`the class ${componentReady.constructor.name} is not inheritance of class Component`)
 			},
 			filterCustom = (searchUrl, Success, Errors) => {
 				FilterPathUrl = ''
-				console.log(searchUrl)
+				debug('info', 'request to ' + searchUrl)
 				if(searchUrl.match('[0-9]+') || searchUrl.match('<String>')) {
 					FilterPathUrl = Core.FindingData(this.DefineOwnRoute, searchUrl, 'parameter').run()
 				}
@@ -234,14 +214,18 @@ export class Routing {
 				}
 				if(typeof FilterPathUrl === 'object') {
 					componentReady = ''
-					if(typeof FilterPathUrl.beforeEach === 'function') {
-						var forward, next, auth
-						FilterPathUrl.beforeEach(
-							forward = (url) => {
-	
-							}, next = (url) => {
-								console.log(url)
-							}, auth = {middleware: 'admin'})
+					if(this.ConfigRoute.extends.Auth) {
+						FilterPathUrl.__proto__['Auth'] = () => {
+							return{
+								register: (data, token) => {
+									if(window.localStorage.getItem('user-account')) {window.localStorage.removeItem('user-account')}
+									window.localStorage.setItem('user-account', JSON.stringify({token: token,data: data}))
+									return true;
+								},
+								check: () => {if(window.localStorage.getItem('user-account')) {return true}else{return false}},
+								data: () => {if(window.localStorage.getItem('user-account')) {return JSON.parse(window.localStorage.getItem('user-account'))}else{return false}}
+							}
+						}
 					}
 					if(FilterPathUrl.params) {
 						componentReady = FilterPathUrl.template(FilterPathUrl.name, FilterPathUrl.params)
@@ -258,54 +242,114 @@ export class Routing {
 						else if(typeof componentReady.ready !== 'function'){UIError(`new ${componentReady.constructor.name}().ready is not a function`);throw TypeError(`new ${componentReady.constructor.name}().ready is not a function`);}
 					}
 					if(typeof componentReady !== 'object' && !componentReady instanceof Component){UIError(`the class ${componentReady.constructor.name} is not inheritance of class Component`)}
-				}else{throw Error('Not Found')}
+				}
 			}
 			let CheckAppRouting = (OnTrue) => {
-				if(document.querySelectorAll('app-routing').length === 1){
-					OnTrue()
-				}
+				if(document.querySelectorAll('app-routing').length === 1){OnTrue();}
 				if(document.querySelectorAll('app-routing').length >= 2 || document.querySelectorAll('app-routing').length <= 0){
-					RenderElement.remove()
-					throw Error('query "app-routing" no more than 2 or more or nothing. Must be have 1 element.')
+					RenderElement.remove();throw TypeError('query "app-routing" no more than 2 or more or nothing. Must be have 1 element.')
 				}
 			},
 			Started = () => {
+				let EventClickChangePage = () => {
+					let linkRoute = document.querySelectorAll('a[lavosted="link');
+					linkRoute.forEach(dataQuery => {
+						dataQuery.addEventListener('click', e => {
+							e.preventDefault()
+							linkRoute.forEach(dataQuery2 => {
+								if(dataQuery2.classList.contains('active')) {
+									dataQuery2.classList.remove('active')
+								}
+							})
+							e.target.classList.add('active')
+							if(e.target.getAttribute('href') !== window.location.pathname) {
+								OnChangePage(e);
+							}
+						})
+					})
+				},
+				EventClickAsync = () => {
+					let linkRoute = document.querySelectorAll('a[lavosted="link"][async="true"]');
+					linkRoute.forEach(dataQuery => {
+						dataQuery.addEventListener('click', e => {
+							e.preventDefault()
+							linkRoute.forEach(dataQuery2 => {
+								if(dataQuery2.classList.contains('active')) {
+									dataQuery2.classList.remove('active')
+								}
+							})
+							if(e.target.getAttribute('href') !== window.location.pathname) {
+								OnChangePage(e);
+							}
+						})
+					})
+				},
+				latestUrl = '',
+				filterCustomAction = (searchfilter) => {
+					filterCustom(searchfilter, () => {
+						let StartedClick = () => {
+							var statusRun = false
+							function runnerApp(){
+								statusRun = true
+								let removedBeforeElement = document.body.querySelector(ElementApp).querySelector('app-routing').innerHTML = '',
+								OnMount = setTimeout(() => {
+									componentReady.beforeMount()
+								}),
+								MountStart = setTimeout(() => {
+									window.history.pushState({},FilterPathUrl.title,searchfilter)
+									document.title = FilterPathUrl.title;
+									let PushElement = RenderElement ? function() {
+										var start = new Date().getMilliseconds()
+										componentReady.componentDidMount().then(result => result.data())
+										Core.CreateComponent(FilterPathUrl.name, () => componentReady.ready(), () => componentReady.componentWillmount())
+										var end = new Date().getMilliseconds()
+										setTimeout(() => {
+											CheckAppRouting(() => {
+												Core.CreateElement({
+													name: FilterPathUrl.name,
+													type: ['innerHTML'],
+													data: [componentReady.render()],
+													query: ElementApp + ' app-routing'
+												})
+											})
+											EventClickAsync()
+										}, start + end + 1000)
+									}: function() {
+										throw TypeError(`not founds element with query ${ElementApp}. solutions => "<div id="${ElementApp}"></div>"`)
+									}
+									PushElement()
+								})
+							}
+							if(typeof FilterPathUrl.beforeEach === 'function') {
+								var to, next, auth, beforeEach = FilterPathUrl.beforeEach(auth = () => {if(window.localStorage.getItem('user-account')) {return JSON.parse(window.localStorage.getItem('user-account'))}else{return false}})
+								if(beforeEach.hasOwnProperty('to') && !beforeEach.hasOwnProperty('next')){
+									statusRun = true
+									filterCustomAction(this.ConfigRoute.BasePath + beforeEach.to + '/')
+								}
+								if(!beforeEach.hasOwnProperty('to') && beforeEach.hasOwnProperty('next')){
+									statusRun = true
+									runnerApp()
+								}
+							}
+							else if(typeof FilterPathUrl.beforeEach !== 'function'){
+								runnerApp()
+							}
+						}
+						StartedClick()
+					})
+				},
+				OnChangePage = (e) => {
+					filterCustomAction(e.target.getAttribute('href') + '/')
+				},
+				// state change (back url)
+				OnHash = () => {
+					window.addEventListener('popstate', function(event) {
+						filterCustomAction(window.location.pathname)
+					}, false);
+				}
+				// first load app
 				filterCustom(window.location.pathname, () => {
-					let EventClickChangePage = () => {
-						let linkRoute = document.querySelectorAll('a[lavosted="link');
-						linkRoute.forEach(dataQuery => {
-							dataQuery.addEventListener('click', e => {
-								e.preventDefault()
-								linkRoute.forEach(dataQuery2 => {
-									if(dataQuery2.classList.contains('active')) {
-										dataQuery2.classList.remove('active')
-									}
-								})
-								e.target.classList.add('active')
-								if(e.target.getAttribute('href') !== window.location.pathname) {
-									OnChangePage(e);
-								}
-							})
-						})
-					},
-					EventClickAsync = () => {
-						let linkRoute = document.querySelectorAll('a[lavosted="link"][async="true"]');
-						linkRoute.forEach(dataQuery => {
-							dataQuery.addEventListener('click', e => {
-								e.preventDefault()
-								linkRoute.forEach(dataQuery2 => {
-									if(dataQuery2.classList.contains('active')) {
-										dataQuery2.classList.remove('active')
-									}
-								})
-								if(e.target.getAttribute('href') !== window.location.pathname) {
-									OnChangePage(e);
-								}
-							})
-						})
-					},
-					// before loaded
-					OnMount = window.addEventListener('DOMContentLoaded', event => {
+					let OnMount = window.addEventListener('DOMContentLoaded', event => {
 						if(componentReady.DOMContentLoaded){
 							componentReady.DOMContentLoaded()
 						}
@@ -337,83 +381,7 @@ export class Routing {
 							throw TypeError(`not founds element with query ${ElementApp}. solutions => "<div id="${ElementApp}"></div>"`)
 						}
 						PushElement()
-					}),
-					// chaneg page
-					OnChangePage = (e) => {
-						filterCustom(e.target.getAttribute('href') + '/', () => {
-							let UnMountUrlNow = Core.FindingData(this.DefineOwnRoute, window.location.pathname).run(),
-							StartedClick = () => {
-								// let removedBeforeElement = document.body.querySelector(ElementApp).querySelector(UnMountUrlNow.name).remove()
-								let removedBeforeElement = document.body.querySelector(ElementApp).querySelector('app-routing').innerHTML = ''
-								OnMount = setTimeout(() => {
-									componentReady.beforeMount()
-								}),
-								MountStart = setTimeout(() => {
-									window.history.pushState({},FilterPathUrl.title,e.target.getAttribute('href'))
-									document.title = FilterPathUrl.title;
-									let PushElement = RenderElement ? function() {
-										var start = new Date().getMilliseconds()
-										componentReady.componentDidMount().then(result => result.data())
-										Core.CreateComponent(FilterPathUrl.name, () => componentReady.ready(), () => componentReady.componentWillmount())
-										var end = new Date().getMilliseconds()
-										setTimeout(() => {
-											CheckAppRouting(() => {
-												Core.CreateElement({
-													name: FilterPathUrl.name,
-													type: ['innerHTML'],
-													data: [componentReady.render()],
-													query: ElementApp + ' app-routing'
-												})
-											})
-											EventClickAsync()
-										}, start + end + 1000)
-									}: function() {
-										throw TypeError(`not founds element with query ${ElementApp}. solutions => "<div id="${ElementApp}"></div>"`)
-									}
-									PushElement()
-								})
-							}
-							StartedClick()
-						})
-					},
-					// state change (back url)
-					OnHash = () => {
-						let ListRoute = this.DefineOwnRoute
-						window.addEventListener('popstate', function(event) {
-							filterCustom(window.location.pathname, () => {
-								setTimeout(() => {
-									document.body.querySelector(ElementApp).querySelector('app-routing').innerHTML = ''
-									OnMount = setTimeout(() => {
-										componentReady.beforeMount()
-									}),
-									MountStart = setTimeout(() => {
-										window.history.replaceState({},FilterPathUrl.title,null)
-										document.title = FilterPathUrl.title;
-										let PushElement = RenderElement ? function() {
-											var start = new Date().getMilliseconds()
-											componentReady.componentDidMount().then(result => result.data())
-											Core.CreateComponent(FilterPathUrl.name, () => componentReady.ready(), () => componentReady.componentWillmount())
-											var end = new Date().getMilliseconds()
-											setTimeout(() => {
-												CheckAppRouting(() => {
-													Core.CreateElement({
-														name: FilterPathUrl.name,
-														type: ['innerHTML'],
-														data: [componentReady.render()],
-														query: ElementApp + ' app-routing'
-													})	
-												})
-												EventClickAsync()
-											}, start + end + 1000)
-										}: function() {
-											throw TypeError(`not founds element with query ${ElementApp}. solutions => "<div id="${ElementApp}"></div>"`)
-										}
-										PushElement()
-									})
-								})
-							})
-						}, false);
-					}
+					})
 					OnHash()
 				})
 			}
@@ -429,7 +397,9 @@ window.db = () => {
 		console.info('the password is confirmed\n')
 		return dbprivate
 	}else{
-		console.error('the password is wrong.')
+		if(confirm('password wrong. try again ?')){
+			db()
+		}
 	}
 }
 
@@ -501,8 +471,4 @@ export const Link = (props = [], params = '') => {
 			}
 		}
 	}}
-}
-
-export class Middleware{
-
 }
