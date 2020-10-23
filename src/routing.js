@@ -1,5 +1,5 @@
 export let Core = {}
-var base = '', routeUrl = {}
+var base = '', routeUrl = {}, passworddb = ''
 // create element
 Core.CreateElement = (data) => {
 	if(data.type.length === data.data.length) {
@@ -149,7 +149,6 @@ Core.FindingData = (DataArray, DataFind, DataType) => {
 											if(keyFilter === keyNum && dataFilter.toString()) {
 												// console.log(DataRoute)
 												// change
-												console.log(dataFilter)
 												arrayFound = DataRoute
 												arrayFound.path = stringdata.split('<Number>').join(dataFilter.toString())
 												// arrayFound.path = stringdata.slice(0, stringdata.match(number)['index']) + dataFilter.toString() + stringdata.slice(stringdata.match(number)['index'] + number.length, stringdata.length)
@@ -159,10 +158,6 @@ Core.FindingData = (DataArray, DataFind, DataType) => {
 										})
 									}
 								})
-								// console.log(filterFind)
-								// console.log(resultingNumber)
-								// console.log(filterNumber)
-								// console.log(arrayFound)
 							}
 						}
 					})
@@ -172,8 +167,6 @@ Core.FindingData = (DataArray, DataFind, DataType) => {
 	}
 	return new Filtered(DataArray, DataFind, DataType)
 }
-
-var namemiddleware = [], passworddb = ''
 
 export class Routing {
 	constructor(DefineOwnRoute = [], ConfigRoute = {}) {
@@ -191,12 +184,9 @@ export class Routing {
 			RenderElement = document.body.querySelector(ElementApp),
 			FilterPathUrl = '',
 			componentReady = '',
-			debug = (type, ...data) => {
-				if(this.ConfigRoute.Mode === 'development'){
-					data.forEach(dataDebug => {
-						console[type](dataDebug)
-					})
-				}
+			dataDebug = [],
+			debug = () => {
+				if(this.ConfigRoute.Mode === 'development'){console.group('debug');dataDebug.forEach(dataDebug => {console[dataDebug.type](dataDebug.msg)});console.groupEnd()}
 			},
 			UIError = (append) => {
 				Core.CreateComponent('app-error', () => {}, () => {})
@@ -205,7 +195,7 @@ export class Routing {
 			},
 			filterCustom = (searchUrl, Success, Errors) => {
 				FilterPathUrl = ''
-				debug('info', 'request to ' + searchUrl)
+				dataDebug.push({type: 'log', msg: 'request to ' + searchUrl})
 				if(searchUrl.match('[0-9]+') || searchUrl.match('<String>')) {
 					FilterPathUrl = Core.FindingData(this.DefineOwnRoute, searchUrl, 'parameter').run()
 				}
@@ -246,144 +236,88 @@ export class Routing {
 			}
 			let CheckAppRouting = (OnTrue) => {
 				if(document.querySelectorAll('app-routing').length === 1){OnTrue();}
-				if(document.querySelectorAll('app-routing').length >= 2 || document.querySelectorAll('app-routing').length <= 0){
-					RenderElement.remove();throw TypeError('query "app-routing" no more than 2 or more or nothing. Must be have 1 element.')
-				}
+				if(document.querySelectorAll('app-routing').length >= 2 || document.querySelectorAll('app-routing').length <= 0){RenderElement.remove();throw TypeError('query "app-routing" no more than 2 or more or nothing. Must be have 1 element.')}
 			},
 			Started = () => {
 				let EventClickChangePage = () => {
 					let linkRoute = document.querySelectorAll('a[lavosted="link');
 					linkRoute.forEach(dataQuery => {
-						dataQuery.addEventListener('click', e => {
-							e.preventDefault()
-							linkRoute.forEach(dataQuery2 => {
-								if(dataQuery2.classList.contains('active')) {
-									dataQuery2.classList.remove('active')
-								}
-							})
-							e.target.classList.add('active')
-							if(e.target.getAttribute('href') !== window.location.pathname) {
-								OnChangePage(e);
-							}
+						dataQuery.addEventListener('click', e => {e.preventDefault()
+							linkRoute.forEach(dataQuery2 => {if(dataQuery2.classList.contains('active')) {dataQuery2.classList.remove('active')}})
+							e.target.classList.add('active');if(e.target.getAttribute('href') !== window.location.pathname){OnChangePage(e);}
 						})
 					})
 				},
 				EventClickAsync = () => {
 					let linkRoute = document.querySelectorAll('a[lavosted="link"][async="true"]');
 					linkRoute.forEach(dataQuery => {
-						dataQuery.addEventListener('click', e => {
-							e.preventDefault()
-							linkRoute.forEach(dataQuery2 => {
-								if(dataQuery2.classList.contains('active')) {
-									dataQuery2.classList.remove('active')
-								}
-							})
-							if(e.target.getAttribute('href') !== window.location.pathname) {
-								OnChangePage(e);
-							}
-						})
+						dataQuery.addEventListener('click', e => {e.preventDefault();linkRoute.forEach(dataQuery2 => {if(dataQuery2.classList.contains('active')){dataQuery2.classList.remove('active')}});if(e.target.getAttribute('href') !== window.location.pathname) {OnChangePage(e);}})
 					})
 				},
 				latestUrl = '',
-				filterCustomAction = (searchfilter) => {
+				detectElement = (callback) => {
+					let PushElement = RenderElement ? function() {callback()}: function() {throw TypeError(`not founds element with query ${ElementApp}. solutions => "<div id="${ElementApp}"></div>"`)};PushElement()
+				},
+				filterCustomAction = (searchfilter, hashStatus) => {
 					filterCustom(searchfilter, () => {
-						let StartedClick = () => {
-							var statusRun = false
-							function runnerApp(){
+						var statusRun = false;
+						function runnerApp(){
+							statusRun = true;
+							let removedBeforeElement = document.body.querySelector(ElementApp).querySelector('app-routing').innerHTML = '';
+							// beforeMount
+							componentReady.beforeMount();
+							// MountStart
+							if(!hashStatus){window.history.pushState({},FilterPathUrl.title,searchfilter)}
+							document.title = FilterPathUrl.title;
+							detectElement(() => {
+								var start = new Date().getMilliseconds()
+								componentReady.componentDidMount().then(result => result.data())
+								Core.CreateComponent(FilterPathUrl.name, () => componentReady.ready(), () => componentReady.componentWillmount())
+								var end = new Date().getMilliseconds()
+								setTimeout(() => {
+									CheckAppRouting(() => {
+										Core.CreateElement({
+											name: FilterPathUrl.name,
+											type: ['innerHTML'],
+											data: [componentReady.render()],
+											query: ElementApp + ' app-routing'
+										})
+									})
+									EventClickAsync()
+								}, start + end + 1000)
+							})
+						}
+						if(typeof FilterPathUrl.beforeEach === 'function') {
+							var to, next, auth, beforeEach = FilterPathUrl.beforeEach(auth = () => {if(window.localStorage.getItem('user-account')) {return JSON.parse(window.localStorage.getItem('user-account'))}else{return false}})
+							if(beforeEach.hasOwnProperty('to') && !beforeEach.hasOwnProperty('next')){
 								statusRun = true
-								let removedBeforeElement = document.body.querySelector(ElementApp).querySelector('app-routing').innerHTML = '',
-								OnMount = setTimeout(() => {
-									componentReady.beforeMount()
-								}),
-								MountStart = setTimeout(() => {
-									window.history.pushState({},FilterPathUrl.title,searchfilter)
-									document.title = FilterPathUrl.title;
-									let PushElement = RenderElement ? function() {
-										var start = new Date().getMilliseconds()
-										componentReady.componentDidMount().then(result => result.data())
-										Core.CreateComponent(FilterPathUrl.name, () => componentReady.ready(), () => componentReady.componentWillmount())
-										var end = new Date().getMilliseconds()
-										setTimeout(() => {
-											CheckAppRouting(() => {
-												Core.CreateElement({
-													name: FilterPathUrl.name,
-													type: ['innerHTML'],
-													data: [componentReady.render()],
-													query: ElementApp + ' app-routing'
-												})
-											})
-											EventClickAsync()
-										}, start + end + 1000)
-									}: function() {
-										throw TypeError(`not founds element with query ${ElementApp}. solutions => "<div id="${ElementApp}"></div>"`)
-									}
-									PushElement()
-								})
+								filterCustomAction(this.ConfigRoute.BasePath + beforeEach.to + '/')
 							}
-							if(typeof FilterPathUrl.beforeEach === 'function') {
-								var to, next, auth, beforeEach = FilterPathUrl.beforeEach(auth = () => {if(window.localStorage.getItem('user-account')) {return JSON.parse(window.localStorage.getItem('user-account'))}else{return false}})
-								if(beforeEach.hasOwnProperty('to') && !beforeEach.hasOwnProperty('next')){
-									statusRun = true
-									filterCustomAction(this.ConfigRoute.BasePath + beforeEach.to + '/')
-								}
-								if(!beforeEach.hasOwnProperty('to') && beforeEach.hasOwnProperty('next')){
-									statusRun = true
-									runnerApp()
-								}
-							}
-							else if(typeof FilterPathUrl.beforeEach !== 'function'){
+							if(!beforeEach.hasOwnProperty('to') && beforeEach.hasOwnProperty('next')){
+								statusRun = true
 								runnerApp()
 							}
-						}
-						StartedClick()
-					})
+						}else if(typeof FilterPathUrl.beforeEach !== 'function'){runnerApp();}debug()
+					});
 				},
 				OnChangePage = (e) => {
 					filterCustomAction(e.target.getAttribute('href') + '/')
-				},
-				// state change (back url)
-				OnHash = () => {
-					window.addEventListener('popstate', function(event) {
-						filterCustomAction(window.location.pathname)
-					}, false);
+					console.log(e.target.getAttribute('path'))
 				}
 				// first load app
-				filterCustom(window.location.pathname, () => {
-					let OnMount = window.addEventListener('DOMContentLoaded', event => {
-						if(componentReady.DOMContentLoaded){
-							componentReady.DOMContentLoaded()
-						}
-					}),
-					// loaded
-					MountStart = window.addEventListener('load', event => {
-						window.history.replaceState({},componentReady.title,window.location.href)
-						componentReady.beforeMount()
-						document.title = FilterPathUrl.title
-						let PushElement = RenderElement ? function(){
-							Core.CreateComponent('app-routing', () => {}, () => {})
-							var start = new Date().getMilliseconds()
-							var mounted = componentReady.componentDidMount().then(result => result.data())
-							Core.CreateComponent(componentReady.name, () => componentReady.ready(), () => componentReady.componentWillmount())
-							Core.CreateElement({
-								name: 'div',
-								type: ['innerHTML'],
-								data: [TemplateIntegrated],
-								query: ElementApp
-							})
-							var end = new Date().getMilliseconds()
-							setTimeout(() => {
-								CheckAppRouting(() => {
-									Core.CreateElement({name: componentReady.name,type: ['innerHTML'],data: [componentReady.render()],query: ElementApp + ' app-routing'})
-								})
-								EventClickChangePage();
-							}, start + end + 1000)
-						}: function(){
-							throw TypeError(`not founds element with query ${ElementApp}. solutions => "<div id="${ElementApp}"></div>"`)
-						}
-						PushElement()
+				detectElement(() => {
+					Core.CreateComponent('app-routing', () => {}, () => {})
+					var start = new Date().getMilliseconds()
+					Core.CreateElement({
+						name: 'div',
+						type: ['innerHTML'],
+						data: [TemplateIntegrated],
+						query: ElementApp
 					})
-					OnHash()
 				})
+				filterCustomAction(window.location.pathname);EventClickChangePage();
+				// state change (back/next url)
+				window.addEventListener('popstate', function(event) {filterCustomAction(window.location.pathname, true)});
 			}
 			Started()
 			return {dbprivate: (pw) => passworddb = pw}
@@ -422,17 +356,14 @@ export class Component{
 			dbprivate[this.nameStateOfComponent] = {state: ada, created_at: this.NowDated, updated_at: this.NowDated}
 		}
 		else if(Array.isArray(stateChange)) {
-
+			stateChange.forEach(value => {
+				if(stateChange[value[0]]) {
+					dbprivate[value[0]] = value[1]
+				}
+			})
 		}else{
 			throw TypeError('setState in parameter 1 not type function / array.')
 		}
-		// if(Array.isArray(state)) {
-		// 	state.forEach(value => {
-		// 		if(window.history.state[value[0]]) {
-		// 			window.history.state[value[0]] = value[1]
-		// 		}
-		// 	})
-		// }
 	}
 	state() {
 		return dbprivate[this.nameStateOfComponent].state;
@@ -449,25 +380,25 @@ export class SubComponent{
 }
 
 export const Link = (props = [], params = '') => {
-	return{to: ($url, $string, type) => {
+	return{to: ($url, $string, $path, $type) => {
 		if(typeof $url === 'object') {
-			if(type) {
-				return `<a ${props} href="${routeUrl[$url]}" lavosted="link" async="true">${$string}</a>`
+			if($type) {
+				return `<a ${props} href="${routeUrl[$url]}" lavosted="link" path='${$path}' async="true">${$string}</a>`
 			}
 			if(params){
-				return `<a ${props} href="${routeUrl[$url]}" lavosted="link" async="true" params="true">${$string}</a>`
+				return `<a ${props} href="${routeUrl[$url]}" lavosted="link" path='${$path}' async="true" params="true">${$string}</a>`
 			}else{
-				return `<a ${props} href="${routeUrl[$url]}" lavosted="link">${$string}</a>`
+				return `<a ${props} href="${routeUrl[$url]}" lavosted="link" path='${$path}'>${$string}</a>`
 			}
 		}
 		if(typeof $url === 'string') {
-			if(type) {
-				return `<a ${props} href="${base+ $url}" lavosted="link" async="true">${$string}</a>`
+			if($type) {
+				return `<a ${props} href="${base+ $url}" lavosted="link" path='${$path}' async="true">${$string}</a>`
 			}
 			if(params){
-				return `<a ${props} href="${base+ $url}" lavosted="link" async="true" params="true">${$string}</a>`
+				return `<a ${props} href="${base+ $url}" lavosted="link" path='${$path}' async="true" params="true">${$string}</a>`
 			}else{
-				return `<a ${props} href="${base+ $url}" lavosted="link">${$string}</a>`
+				return `<a ${props} href="${base+ $url}" lavosted="link" path='${$path}'>${$string}</a>`
 			}
 		}
 	}}
