@@ -1,59 +1,44 @@
 import {
-	Component,
-	Link,
-	Routing,
-	SubComponent,
-	Core
+	Component
 } from '../../src/routing.js'
 
 class User extends Component{
-	constructor(name, params) {
+	constructor(request) {
 		super({
-			name: name,
-			params: params,
-			state: {data: [],app: 3, single: 1}
+			name: request.name,
+			params: request.params,
+			state: {users: {}}
 		})
-		this.name = name
-		this.params = params
-		console.log(super.options)
 	}
-	// before mounted started
-	beforeMount() {
-		console.log('before mount')
-	}
-	// after mount
-	componentWillmount() {
-		console.log('wil mount')
-	}
-	// mounted
 	componentDidMount() {
-		console.log('mount')
-		return new Promise((resolve, reject) => {
-			resolve({data: () => {
-			}})
+		fetch('https://jsonplaceholder.typicode.com/users/' + super.params[0])
+        .then(response => response.json())
+        .then(json => {
+			super.setState(setState => {
+				return{
+					users: json
+				}
+			})
 		})
-	}
-	ready() {
-		L('p').on('click', e => console.log(e))
+        return new Promise((res, rej) => {
+            res({data: () => {}})
+        })
 	}
 	// template html
 	render() {
+		var user = super.state().users
 		return (
 		`
-		<section class="section" style="margin-top: 4rem!important;">
-		  	<div class="container-sm">
-		  		<div class="row">
-		  			<div class="col-12 col-lg-6 offset-lg-3 text-center p-2 shadow-lg bg-white">
-			  			<p class="text-center" style="font-size: 20px;font-weight: 600;">User ${this.params}</p>
-			  			<p>
-			  				Lavosted is framework javascript using pure javascript and used to create web app without library or packages.
-			  			</p>
-			  			<p>Feedback issue and bug in <a href="">Github</a></p>
-		  			</div>
-		  			</dv>
-		  		</div>
+		  	<div class="col-12 col-lg-6 offset-lg-3 p-2 shadow-sm bg-white">
+				<p class="text-center" style="font-size: 20px;font-weight: 600;">Response API Example</p>
+				<ul class="list-group">
+  					<li class="list-group-item" aria-current="true">${user.id}</li>
+  					<li class="list-group-item">${user.name}</li>
+  					<li class="list-group-item">${user.username}</li>
+  					<li class="list-group-item">${user.email}</li>
+  					<li class="list-group-item">${user.phone}</li>
+				</ul>
 		  	</div>
-		  </section>
 		  `
 		)
 	}
