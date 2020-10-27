@@ -1,22 +1,24 @@
 import {
 	Component
-} from '../../src/routing.js'
+} from '../../src/routing-next-beta.js'
 
 class User extends Component{
 	constructor(request) {
 		super({
 			name: request.name,
 			params: request.params,
-			state: {users: {}}
+			state: {
+				users: {}
+			}
 		})
 	}
 	componentDidMount() {
 		fetch('https://jsonplaceholder.typicode.com/users/' + super.params[0])
         .then(response => response.json())
-        .then(json => {
+        .then(data => {
 			super.setState(setState => {
 				return{
-					users: json
+					users: data
 				}
 			})
 		})

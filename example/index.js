@@ -2,7 +2,7 @@ import {
     Link,
     Routing,
     Core as C
-} from '../src/routing.js'
+} from '../src/routing-next-beta.js'
 import Home from './page/Home.js'
 import About from './page/About.js'
 import User from './page/User.js'

@@ -1,6 +1,6 @@
 import {
 	Component
-} from '../../src/routing.js'
+} from '../../src/routing-next-beta.js'
 
 class Home extends Component{
 	constructor(request) {
