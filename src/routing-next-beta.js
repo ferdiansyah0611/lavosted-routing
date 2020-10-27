@@ -1,20 +1,23 @@
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-export var Core = {};
-Core.CreateElement = function (data) {
+export let Core = Object.create(null);
+var base = '', routeUrl = {}, passworddb = '', viewHisory = [];
+Core.Element = (name, attr = []) => {
+    if (typeof name === 'string' && Array.isArray(attr)) {
+        var cr = document.createElement(name);
+        if (attr) {
+            attr.forEach(data => {
+                cr[data[0]] = data[1];
+            });
+        }
+        return cr;
+    }
+    else {
+        throw Error('Core.Element(?: string, []?: Array)');
+    }
+};
+Core.write = (msg) => { console.log(msg); };
+Core.CreateElement = (data) => {
     if (data.type.length === data.data.length) {
-        var Create = document.createElement(data.name);
+        let Create = document.createElement(data.name);
         for (var i = 0; i < data.type.length; i++) {
             Create[data.type[i]] = data.type[i];
         }
@@ -22,350 +25,387 @@ Core.CreateElement = function (data) {
         document.querySelector(data.query).appendChild(Create);
     }
 };
-Core.CreateComponent = function (NameElement, ComponentDidMount, ComponentWillmount) {
-    var Reactivty = (function (_super) {
-        __extends(Reactivty, _super);
-        function Reactivty() {
-            return _super.call(this) || this;
-        }
-        Reactivty.prototype.connectedCallback = function () {
-            ComponentDidMount();
-        };
-        Reactivty.prototype.disconnectedCallback = function () {
-            ComponentWillmount();
-        };
-        Reactivty.prototype.adoptedCallback = function () { };
-        Reactivty.prototype.attributeChangedCallback = function (name, oldValue, newValue) { };
-        return Reactivty;
-    }(HTMLElement));
+Core.CreateComponent = (NameElement, ComponentDidMount, ComponentWillmount) => {
+    class Reactivty extends HTMLElement {
+        constructor() { super(); }
+        connectedCallback() { ComponentDidMount(); }
+        disconnectedCallback() { ComponentWillmount(); }
+        adoptedCallback() { }
+        attributeChangedCallback(name, old, newv) { }
+    }
     if (!customElements.get(NameElement)) {
         customElements.define(NameElement, Reactivty);
     }
 };
-Core.FindingData = function (DataArray, DataFind, DataType) {
-    var Filtered = (function () {
-        function Filtered($Array, Find, Type) {
-            if ($Array === void 0) { $Array = []; }
-            if (Find === void 0) { Find = ''; }
-            if (Type === void 0) { Type = ''; }
+Core.FindingData = (DataArray, DataFind, DataType) => {
+    class Filtered {
+        constructor($Array, Find, Type) {
             this.array = $Array;
             this.find = Find;
             this.type = Type;
         }
-        Filtered.prototype.run = function () {
-            var _this = this;
-            return this.array.find(function (DataRoute, KeyRoute) {
-                var Path = typeof DataRoute.path, Title = typeof DataRoute.title;
-                if ((DataRoute.path + '/').match(_this.find)) {
-                    if (Path == 'string' && Title == 'string') {
-                        return true;
-                    }
-                    else
-                        throw Error('please check type data in your routing');
-                }
-                if (_this.type === 'parameter' && DataRoute.params) {
-                    DataRoute.params.find(function (dataParams, keyParams) {
-                        if (DataRoute.params.length === 1) {
-                            if (DataRoute.path.match('<Number>') && dataParams === 'Number') {
-                                var stringdata_1 = DataRoute.path, number_1 = '<Number>', count = stringdata_1.length - stringdata_1.match(number_1)['index'] + (number_1.length), index = stringdata_1.match(number_1)['index'], resultingNumber = stringdata_1.slice(0, stringdata_1.match(number_1)['index']) + 1 + stringdata_1.slice(stringdata_1.match(number_1)['index'] + number_1.length, stringdata_1.length), filterNumber_1 = resultingNumber.split('/').filter(function (data) { return data !== ''; }), filterFind_1 = _this.find.split('/').filter(function (data) { return data !== ''; }), arrayFound_1 = '', research = filterFind_1.find(function (dataFilter, keyFilter) {
-                                    if (dataFilter.match('^[0-9]$') && filterFind_1.length === filterNumber_1.length) {
-                                        filterNumber_1.find(function (numFilter, keyNum) {
-                                            if (keyFilter === keyNum && parseInt(dataFilter) !== NaN) {
-                                                arrayFound_1 = DataRoute;
-                                                arrayFound_1.path = stringdata_1.slice(0, stringdata_1.match(number_1)['index']) + parseInt(dataFilter) + stringdata_1.slice(stringdata_1.match(number_1)['index'] + number_1.length, stringdata_1.length);
-                                                arrayFound_1.params = parseInt(dataFilter);
-                                                return true;
-                                            }
-                                        });
+        run() {
+            return this.array.find((DataRoute) => {
+                let Path = typeof DataRoute.path, Title = typeof DataRoute.title;
+                if (typeof this.find === 'object') {
+                    if (DataRoute.path === base + this.find.path) {
+                        var matchNumber = [...DataRoute.path.matchAll('<Number>')], matchString = [...DataRoute.path.matchAll('<String>')];
+                        if (matchNumber.length >= 1 || matchString.length >= 1) {
+                            if (matchNumber.length === 1 || matchString.length === 1) {
+                                var urlsplit = this.find.url.split('/'), pathsplit = (DataRoute.path + '/').split('/');
+                                pathsplit.find((findNumber, keyfindNumber) => {
+                                    if (matchNumber.length === 1 && findNumber === '<Number>' && matchString.length === 0) {
+                                        pathsplit[keyfindNumber] = urlsplit[keyfindNumber];
+                                        DataRoute.data = [urlsplit[keyfindNumber]];
+                                    }
+                                    if (matchString.length === 1 && findNumber === '<String>' && matchNumber.length === 0) {
+                                        pathsplit[keyfindNumber] = urlsplit[keyfindNumber];
+                                        DataRoute.data = [urlsplit[keyfindNumber]];
                                     }
                                 });
+                                return true;
                             }
                         }
-                    });
+                        else {
+                            console.log('sama');
+                        }
+                    }
+                }
+                else {
+                    if ((DataRoute.path + '/').match(this.find)) {
+                        if (Path == 'string' && Title == 'string') {
+                            return true;
+                        }
+                        else
+                            throw Error('please check type data in your routing');
+                    }
                 }
             });
-        };
-        return Filtered;
-    }());
+        }
+    }
     return new Filtered(DataArray, DataFind, DataType);
 };
-export var Link = function (props) {
-    if (props === void 0) { props = []; }
-    return { to: function ($url, $string, type) {
-            if (type) {
-                return "<a " + props + " href=\"" + $url + "\" lavosted=\"link\" async=\"true\">" + $string + "</a>";
-            }
-            else {
-                return "<a " + props + " href=\"" + $url + "\" lavosted=\"link\">" + $string + "</a>";
-            }
-        } };
-};
-var passworddb = '';
-var Routing = (function () {
-    function Routing(DefineOwnRoute, ConfigRoute) {
-        if (DefineOwnRoute === void 0) { DefineOwnRoute = []; }
-        if (ConfigRoute === void 0) { ConfigRoute = {}; }
+export class Routing {
+    constructor(DefineOwnRoute = [], configRoute) {
         this.DefineOwnRoute = DefineOwnRoute;
-        this.ConfigRoute = ConfigRoute;
+        this.ConfigRoute = configRoute;
+        base = configRoute.BasePath;
+        DefineOwnRoute.forEach(routelist => {
+            routeUrl[routelist.name] = routelist.path;
+        });
     }
-    Routing.prototype.rendering = function (ElementApp) {
-        var _this = this;
-        if (this.ConfigRoute.hasOwnProperty('templateIntegratedRouting') && this.ConfigRoute.hasOwnProperty('AppName') && this.ConfigRoute.hasOwnProperty('Type') && this.ConfigRoute.hasOwnProperty('PageError') && typeof ElementApp === 'string') {
-            var TemplateIntegrated_1 = this.ConfigRoute.templateIntegratedRouting.template(), BaseUrl = window.location.origin, PathUrl = window.location.pathname, RenderElement_1 = document.body.querySelector(ElementApp), FilterPathUrl_1 = '';
-            if (PathUrl.match('1|2|3|4|5|6|7|8|9') || PathUrl.match('string')) {
-                FilterPathUrl_1 = Core.FindingData(this.DefineOwnRoute, PathUrl, 'parameter').run();
-            }
-            if (!PathUrl.match('1|2|3|4|5|6|7|8|9') || !PathUrl.match('string')) {
-                FilterPathUrl_1 = Core.FindingData(this.DefineOwnRoute, PathUrl).run();
-            }
-            var CheckAppRouting_1 = function (OnTrue) {
-                if (document.querySelectorAll('app-routing').length === 1) {
-                    OnTrue();
+    rendering(ElementApp) {
+        if (this.ConfigRoute.hasOwnProperty('BasePath') && this.ConfigRoute.hasOwnProperty('templateIntegratedRouting') && this.ConfigRoute.hasOwnProperty('AppName') && this.ConfigRoute.hasOwnProperty('Mode') && this.ConfigRoute.hasOwnProperty('PageError') && typeof ElementApp === 'string') {
+            let TemplateIntegrated = this.ConfigRoute.templateIntegratedRouting.template(), BaseUrl = window.location.origin, PathUrl = window.location.pathname, RenderElement = document.body.querySelector(ElementApp), FilterPathUrl = '', componentReady, dataDebug = [], configInherit = this.ConfigRoute, debug = () => {
+                if (this.ConfigRoute.Mode === 'development') {
+                    console.groupCollapsed('request');
+                    dataDebug.forEach(dataDebug => { Core.write('> [' + new Date().getUTCHours() + ':' + new Date().getUTCMinutes() + ':' + new Date().getUTCSeconds() + '] ' + dataDebug.msg); });
+                    console.groupEnd();
                 }
-                if (document.querySelectorAll('app-routing').length >= 2 || document.querySelectorAll('app-routing').length <= 0) {
-                    RenderElement_1.remove();
-                    throw Error('query "app-routing" no more than 2 or more or nothing. Must be have 1 element.');
+            }, UIError = (append) => {
+                Core.CreateComponent('app-error', () => { }, () => { });
+                Core.CreateElement({ name: 'app-error', type: ['innerHTML'], data: [append], query: ElementApp });
+                throw TypeError(`the class ${componentReady.constructor.name} is not inheritance of class Component`);
+            }, filterCustom = (searchUrl, Success) => {
+                FilterPathUrl = '';
+                if (typeof searchUrl === 'object') {
+                    FilterPathUrl = Core.FindingData(this.DefineOwnRoute, searchUrl).run();
+                    FilterPathUrl ? dataDebug.push({ type: 'log', msg: 'request to ' + searchUrl.url + ' [200]' }) : dataDebug.push({ type: 'log', msg: 'request to ' + searchUrl.url + ' [404]' });
                 }
-            }, Started = function () {
-                if (typeof FilterPathUrl_1 === 'object') {
-                    var componentReady = '';
-                    if (FilterPathUrl_1.params) {
-                        componentReady = FilterPathUrl_1.template(FilterPathUrl_1.name, FilterPathUrl_1.params);
+                if (typeof searchUrl === 'string') {
+                    if (searchUrl.match('[0-9]+') || searchUrl.match('<String>')) {
+                        FilterPathUrl = Core.FindingData(this.DefineOwnRoute, searchUrl, 'parameter').run();
                     }
-                    if (!FilterPathUrl_1.params) {
-                        componentReady = FilterPathUrl_1.template(FilterPathUrl_1.name);
+                    if (!searchUrl.match('[0-9]+') || !searchUrl.match('<String>')) {
+                        FilterPathUrl = Core.FindingData(this.DefineOwnRoute, searchUrl).run();
                     }
-                    if (componentReady instanceof Component) {
-                        if (typeof componentReady.componentDidMount === 'function' && typeof componentReady.componentWillmount === 'function' && typeof componentReady.beforeMount === 'function' && typeof componentReady.render === 'function' && typeof componentReady.ready === 'function' && typeof componentReady.state === 'object') {
-                            var EventClickChangePage_1 = function () {
-                                var linkRoute = document.querySelectorAll('a[lavosted="link');
-                                linkRoute.forEach(function (dataQuery) {
-                                    dataQuery.addEventListener('click', function (e) {
-                                        e.preventDefault();
-                                        linkRoute.forEach(function (dataQuery2) {
-                                            if (dataQuery2.classList.contains('active')) {
-                                                dataQuery2.classList.remove('active');
-                                            }
-                                        });
-                                        e.target.classList.add('active');
-                                        if (e.target.getAttribute('href') !== window.location.pathname) {
-                                            OnChangePage_1(e);
-                                        }
-                                    });
-                                });
-                            }, EventClickAsync_1 = function () {
-                                var linkRoute = document.querySelectorAll('a[lavosted="link"][async="true"]');
-                                linkRoute.forEach(function (dataQuery) {
-                                    dataQuery.addEventListener('click', function (e) {
-                                        e.preventDefault();
-                                        linkRoute.forEach(function (dataQuery2) {
-                                            if (dataQuery2.classList.contains('active')) {
-                                                dataQuery2.classList.remove('active');
-                                            }
-                                        });
-                                        if (e.target.getAttribute('href') !== window.location.pathname) {
-                                            OnChangePage_1(e);
-                                        }
-                                    });
-                                });
-                            }, OnMount_1 = window.addEventListener('DOMContentLoaded', function (event) {
-                                if (componentReady.DOMContentLoaded) {
-                                    componentReady.DOMContentLoaded();
+                    FilterPathUrl ? dataDebug.push({ type: 'log', msg: 'request to ' + searchUrl + ' [200]' }) : dataDebug.push({ type: 'log', msg: 'request to ' + searchUrl + ' [404]' });
+                }
+                if (typeof FilterPathUrl === 'object') {
+                    componentReady = null;
+                    if (this.ConfigRoute.extends.Auth) {
+                        FilterPathUrl.__proto__['Auth'] = () => {
+                            return {
+                                register: (data, token) => {
+                                    if (window.localStorage.getItem('user-account')) {
+                                        window.localStorage.removeItem('user-account');
+                                    }
+                                    window.localStorage.setItem('user-account', JSON.stringify({ token: token, data: data }));
+                                    return true;
+                                },
+                                check: () => { if (window.localStorage.getItem('user-account')) {
+                                    return true;
                                 }
-                            }), MountStart_1 = window.addEventListener('load', function (event) {
-                                window.history.replaceState(componentReady.state, componentReady.title, window.location.href);
-                                componentReady.beforeMount();
-                                document.title = FilterPathUrl_1.title;
-                                var PushElement = RenderElement_1 ? function () {
-                                    Core.CreateComponent('app-routing', function () { }, function () { });
-                                    var start = new Date().getMilliseconds();
-                                    var mounted = componentReady.componentDidMount().then(function (result) { return result.data(); });
-                                    Core.CreateComponent(componentReady.name, function () { return componentReady.ready(); }, function () { return componentReady.componentWillmount(); });
-                                    Core.CreateElement({
-                                        name: 'div',
-                                        type: ['innerHTML'],
-                                        data: [TemplateIntegrated_1],
-                                        query: ElementApp
-                                    });
-                                    var end = new Date().getMilliseconds();
-                                    setTimeout(function () {
-                                        CheckAppRouting_1(function () {
-                                            Core.CreateElement({ name: componentReady.name, type: ['innerHTML'], data: [componentReady.render()], query: ElementApp + ' app-routing' });
-                                        });
-                                        EventClickChangePage_1();
-                                    }, start + end);
-                                } : function () {
-                                    throw TypeError("not founds element with query " + ElementApp + ". solutions => \"<div id=\"" + ElementApp + "\"></div>\"");
-                                };
-                                PushElement();
-                            }), OnChangePage_1 = function (e) {
-                                var componentReadyClick = '', methodCallClick = Core.FindingData(_this.DefineOwnRoute, e.target.getAttribute('href') + '/').run();
-                                if (methodCallClick.params) {
-                                    componentReadyClick = methodCallClick.template(methodCallClick.name, methodCallClick.params);
+                                else {
+                                    return false;
+                                } },
+                                data: () => { if (window.localStorage.getItem('user-account')) {
+                                    return JSON.parse(window.localStorage.getItem('user-account'));
                                 }
-                                if (!methodCallClick.params) {
-                                    componentReadyClick = methodCallClick.template(methodCallClick.name);
-                                }
-                                if (componentReadyClick instanceof Component) {
-                                    var UnMountUrlNow_1 = Core.FindingData(_this.DefineOwnRoute, window.location.pathname).run(), StartedClick = function () {
-                                        if (typeof methodCallClick === 'object') {
-                                            var removedBeforeElement = document.body.querySelector(ElementApp).querySelector(UnMountUrlNow_1.name).remove();
-                                            OnMount_1 = setTimeout(function () {
-                                                componentReadyClick.beforeMount();
-                                            }),
-                                                MountStart_1 = setTimeout(function () {
-                                                    window.history.pushState(componentReadyClick.state, methodCallClick.title, e.target.getAttribute('href'));
-                                                    document.title = methodCallClick.title;
-                                                    var PushElement = RenderElement_1 ? function () {
-                                                        var start = new Date().getMilliseconds();
-                                                        componentReadyClick.componentDidMount().then(function (result) { return result.data(); });
-                                                        Core.CreateComponent(methodCallClick.name, function () { return componentReadyClick.ready(); }, function () { return componentReadyClick.componentWillmount(); });
-                                                        var end = new Date().getMilliseconds();
-                                                        setTimeout(function () {
-                                                            CheckAppRouting_1(function () {
-                                                                Core.CreateElement({
-                                                                    name: methodCallClick.name,
-                                                                    type: ['innerHTML'],
-                                                                    data: [componentReadyClick.render()],
-                                                                    query: ElementApp + ' app-routing'
-                                                                });
-                                                            });
-                                                            EventClickAsync_1();
-                                                        }, start + end);
-                                                    } : function () {
-                                                        throw TypeError("not founds element with query " + ElementApp + ". solutions => \"<div id=\"" + ElementApp + "\"></div>\"");
-                                                    };
-                                                    PushElement();
-                                                });
-                                        }
-                                    };
-                                    StartedClick();
-                                }
-                            }, OnHash = function () {
-                                var ListRoute = _this.DefineOwnRoute;
-                                window.addEventListener('popstate', function (event) {
-                                    setTimeout(function () {
-                                        var RunPop = Core.FindingData(ListRoute, window.location.pathname).run();
-                                        if (typeof RunPop === 'object') {
-                                            document.body.querySelector(ElementApp).querySelector('app-routing').innerHTML = '';
-                                            var componentReadyPop_1 = RunPop.template(), OnMount_2 = setTimeout(function () {
-                                                componentReadyPop_1.beforeMount();
-                                            }), MountStart_2 = setTimeout(function () {
-                                                window.history.replaceState(componentReadyPop_1.state, componentReadyPop_1.title, null);
-                                                document.title = RunPop.title;
-                                                var PushElement = RenderElement_1 ? function () {
-                                                    var start = new Date().getMilliseconds();
-                                                    componentReadyPop_1.componentDidMount().then(function (result) { return result.data(); });
-                                                    Core.CreateComponent(componentReadyPop_1.name, function () { return componentReadyPop_1.ready(); }, function () { return componentReadyPop_1.componentWillmount(); });
-                                                    var end = new Date().getMilliseconds();
-                                                    setTimeout(function () {
-                                                        CheckAppRouting_1(function () {
-                                                            Core.CreateElement({
-                                                                name: componentReadyPop_1.name,
-                                                                type: ['innerHTML'],
-                                                                data: [componentReadyPop_1.render()],
-                                                                query: ElementApp + ' app-routing'
-                                                            });
-                                                        });
-                                                        EventClickAsync_1();
-                                                    }, start + end);
-                                                } : function () {
-                                                    throw TypeError("not founds element with query " + ElementApp + ". solutions => \"<div id=\"" + ElementApp + "\"></div>\"");
-                                                };
-                                                PushElement();
-                                            });
-                                        }
-                                    });
-                                }, false);
+                                else {
+                                    return false;
+                                } }
                             };
-                            OnHash();
+                        };
+                    }
+                    if (FilterPathUrl.params) {
+                        componentReady = FilterPathUrl.template({ name: FilterPathUrl.name, params: FilterPathUrl.data });
+                    }
+                    if (!FilterPathUrl.params) {
+                        componentReady = FilterPathUrl.template({ name: FilterPathUrl.name });
+                    }
+                    if (typeof componentReady === 'object' && componentReady instanceof Component) {
+                        if (typeof componentReady.render === 'function') {
+                            Success();
                         }
                         else {
-                            throw Error("\nthe class " + componentReady.constructor.name + " in a methods not type function or object or maybe nothing methods\nRequired methods => beforeMount, componentDidMount, ready, render, componentWillmount and state.");
+                            UIError(`new ${componentReady.constructor.name}().render is not a function`);
+                            throw TypeError(`new ${componentReady.constructor.name}().render is not a function`);
                         }
                     }
-                    else {
-                        Core.CreateComponent('app-error', function () { }, function () { });
-                        Core.CreateElement({
-                            name: 'app-error',
-                            type: ['innerHTML'],
-                            data: ["the class " + componentReady.constructor.name + " is not inheritance of class Component"],
-                            query: ElementApp
+                }
+            };
+            let Started = () => {
+                let EventClickChangePage = () => {
+                    let linkRoute = document.querySelectorAll('a[lavosted="link');
+                    linkRoute.forEach(dataQuery => {
+                        dataQuery.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            linkRoute.forEach(dataQuery2 => { if (dataQuery2.classList.contains('active')) {
+                                dataQuery2.classList.remove('active');
+                            } });
+                            e.target.classList.add('active');
+                            if (e.target.getAttribute('href') !== window.location.pathname) {
+                                OnChangePage(e);
+                            }
                         });
-                        throw TypeError("the class " + componentReady.constructor.name + " is not inheritance of class Component");
+                    });
+                }, EventClickAsync = () => {
+                    let linkRoute = document.querySelectorAll('a[lavosted="link"][async="true"]');
+                    linkRoute.forEach(dataQuery => {
+                        dataQuery.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            linkRoute.forEach(dataQuery2 => {
+                                if (dataQuery2.classList.contains('active')) {
+                                    dataQuery2.classList.remove('active');
+                                }
+                            });
+                            if (e.target.getAttribute('href') !== window.location.pathname) {
+                                OnChangePage(e);
+                            }
+                        });
+                    });
+                }, detectElement = (callback) => {
+                    let PushElement = RenderElement ? function () { callback(); } : function () { throw TypeError(`not founds element with query ${ElementApp}. solutions => "<div id="${ElementApp}"></div>"`); };
+                    PushElement();
+                }, filterCustomAction = (searchfilter, hashStatus) => {
+                    viewHisory.push(searchfilter);
+                    filterCustom(searchfilter, () => {
+                        var statusRun = false, statusModel = false;
+                        ;
+                        function runnerApp() {
+                            statusRun = true;
+                            let removedBeforeElement = document.body.querySelector(ElementApp).querySelector('app-routing').innerHTML = '';
+                            if (configInherit.Mode === 'production') {
+                                statusModel = true;
+                            }
+                            componentReady.beforeMount ? componentReady.beforeMount() : statusModel ? '' : Core.write('before mount');
+                            if (!hashStatus) {
+                                if (typeof searchfilter === 'object') {
+                                    window.history.pushState({}, FilterPathUrl.title, searchfilter.url);
+                                }
+                                else {
+                                    window.history.pushState({}, FilterPathUrl.title, searchfilter);
+                                }
+                            }
+                            document.title = FilterPathUrl.title;
+                            detectElement(() => {
+                                var start = new Date().getMilliseconds();
+                                componentReady.componentDidMount ? componentReady.componentDidMount().then((result) => result.data()) : statusModel ? '' : Core.write('mounted class ' + componentReady.constructor.name);
+                                var runstyle = componentReady.style ? () => {
+                                    document.querySelectorAll('syle').forEach((dataStyle) => {
+                                        if (dataStyle.dataset.component) {
+                                            dataStyle.remove();
+                                        }
+                                    });
+                                    var style = document.createElement('style');
+                                    style.textContent = componentReady.style().replace(',', ';').replace(' ', '');
+                                    style.dataset.component = componentReady.constructor.name;
+                                    document.head.appendChild(style);
+                                } : () => { };
+                                runstyle();
+                                Core.CreateComponent(FilterPathUrl.name, () => componentReady.ready ? componentReady.ready() : statusModel ? '' : Core.write('ready event'), () => componentReady.componentWillmount ? componentReady.componentWillmount() : statusModel ? '' : console.log('willmount'));
+                                var end = new Date().getMilliseconds();
+                                setTimeout(() => {
+                                    if (document.querySelectorAll('app-routing').length === 1) {
+                                        Core.CreateElement({
+                                            name: FilterPathUrl.name,
+                                            type: ['innerHTML'],
+                                            data: [componentReady.render()],
+                                            query: ElementApp + ' app-routing'
+                                        });
+                                    }
+                                    if (document.querySelectorAll('app-routing').length >= 2 || document.querySelectorAll('app-routing').length <= 0) {
+                                        RenderElement.remove();
+                                        throw TypeError('query "app-routing" no more than 2 or more or nothing. Must be have 1 element.');
+                                    }
+                                    EventClickAsync();
+                                }, start + end + 1000);
+                            });
+                        }
+                        if (typeof FilterPathUrl.beforeEach === 'function') {
+                            var auth;
+                            var beforeEach = FilterPathUrl.beforeEach(auth = () => { if (window.localStorage.getItem('user-account')) {
+                                return JSON.parse(window.localStorage.getItem('user-account'));
+                            }
+                            else {
+                                return false;
+                            } });
+                            if (beforeEach.hasOwnProperty('to') && !beforeEach.hasOwnProperty('next')) {
+                                statusRun = true;
+                                filterCustomAction(this.ConfigRoute.BasePath + beforeEach.to + '/', false);
+                            }
+                            if (!beforeEach.hasOwnProperty('to') && beforeEach.hasOwnProperty('next')) {
+                                statusRun = true;
+                                runnerApp();
+                            }
+                        }
+                        else if (typeof FilterPathUrl.beforeEach !== 'function') {
+                            runnerApp();
+                        }
+                        debug();
+                    });
+                }, OnChangePage = (e) => {
+                    if (e.target.getAttribute('path') !== 'undefined') {
+                        filterCustomAction({ url: e.target.getAttribute('href') + '/', path: e.target.getAttribute('path') }, false);
                     }
-                }
-                if (typeof FilterPathUrl_1 === 'undefined') {
-                    Core.CreateComponent('app-error', function () { }, function () { });
-                    Core.CreateElement({ name: 'app-error', type: ['innerHTML'], data: [_this.ConfigRoute.PageError], query: ElementApp });
-                    throw Error('the route not same with url now');
-                }
+                    else {
+                        filterCustomAction(e.target.getAttribute('href') + '/', false);
+                    }
+                };
+                detectElement(() => {
+                    Core.CreateComponent('app-routing', () => { }, () => { });
+                    var start = new Date().getMilliseconds();
+                    Core.CreateElement({
+                        name: 'div',
+                        type: ['innerHTML'],
+                        data: [TemplateIntegrated],
+                        query: ElementApp
+                    });
+                });
+                filterCustomAction(window.location.pathname, false);
+                EventClickChangePage();
+                window.addEventListener('popstate', function (event) {
+                    viewHisory.find(dataHistory => {
+                        if (typeof dataHistory === 'object') {
+                            if (dataHistory.url === window.location.href) {
+                                if (dataHistory.path.match('<Number>') || dataHistory.path.match('<String>')) {
+                                    filterCustomAction({ url: dataHistory.url, path: dataHistory.path }, true);
+                                }
+                                else {
+                                    filterCustomAction(window.location.pathname, true);
+                                }
+                                return true;
+                            }
+                        }
+                        if (typeof dataHistory === 'string' && dataHistory === window.location.pathname || dataHistory === window.location.href) {
+                            filterCustomAction(window.location.pathname, true);
+                            return true;
+                        }
+                    });
+                });
             };
             Started();
-            return {
-                dbprivate: function (pw) {
+            return { dbprivate: (pw) => {
                     passworddb = pw;
-                }
-            };
+                    return {
+                        Component: this.DefineOwnRoute
+                    };
+                } };
         }
         else {
             throw Error('Error configuration');
         }
-    };
-    return Routing;
-}());
-export { Routing };
+    }
+}
 var dbprivate = {};
-window.db = function () {
+window.db = () => {
     if (window.prompt('input the password of database privated') === atob(passworddb)) {
-        console.info('the password is confirmed\n');
         return dbprivate;
     }
     else {
-        console.error('the password is wrong.');
+        if (confirm('password wrong. try again ?')) {
+            window.db();
+        }
     }
 };
-var Component = (function () {
-    function Component(options) {
-        if (options === void 0) { options = {}; }
+export class Component {
+    constructor(options) {
         this.options = options;
+        this.nameStateOfComponent = options.name.split('-').join('');
         if (options.hasOwnProperty('name') && options.hasOwnProperty('state')) {
-            var dated = new Date(), NowDated = parseInt(dated.getFullYear() + dated.getDay().toLocaleString() + dated.getHours().toLocaleString() + dated.getMinutes().toLocaleString() + dated.getSeconds().toLocaleString());
-            if (Object.defineProperty.hasOwnProperty(options.name.split('-').join(''))) {
-                dbprivate[options.name.split('-').join('')] = { state: options.state, created_at: NowDated };
+            if (Object.defineProperty.hasOwnProperty(this.nameStateOfComponent)) {
+                dbprivate[this.nameStateOfComponent] = { state: options.state, created_at: this.NowDated, updated_at: this.NowDated };
             }
             else {
-                dbprivate[options.name.split('-').join('')] = { state: options.state, created_at: NowDated };
+                dbprivate[this.nameStateOfComponent] = { state: options.state, created_at: Component.NowDated, updated_at: Component.NowDated };
             }
         }
         else {
-            throw TypeError("property at path " + this.path + " tidak lengkap");
+            throw TypeError(`property at path ${this.path} incompleted`);
         }
     }
-    Component.prototype.setState = function () {
-        var state = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            state[_i] = arguments[_i];
-        }
-        console.log.apply(console, state);
-    };
-    Component.prototype.state = function () {
-        return dbprivate[this.options.name.split('-').join('')].state;
-    };
-    return Component;
-}());
-export { Component };
-var SubComponent = (function () {
-    function SubComponent(NameComponent, ActionCallBack) {
-        var _this = this;
-        if (NameComponent === void 0) { NameComponent = ''; }
-        if (ActionCallBack === void 0) { ActionCallBack = {}; }
-        this.name = NameComponent;
-        this.ActionCallBack = ActionCallBack;
-        Core.CreateComponent(this.name, function () { return _this.ActionCallBack.componentDidMount(); }, function () { return _this.ActionCallBack.componentWillmount(); });
-        this.start = "<" + this.name + ">" + this.ActionCallBack.render() + ("</" + this.name + ">");
+    get params() {
+        return this.options.params;
     }
-    return SubComponent;
-}());
-export { SubComponent };
+    static get NowDated() {
+        var dated = new Date();
+        return parseInt(dated.getFullYear() + dated.getDay().toLocaleString() + dated.getHours().toLocaleString() + dated.getMinutes().toLocaleString() + dated.getSeconds().toLocaleString());
+    }
+    setState(stateChange) {
+        if (typeof stateChange === 'function') {
+            var ada = stateChange(dbprivate[this.nameStateOfComponent]);
+            dbprivate[this.nameStateOfComponent] = { state: ada, created_at: Component.NowDated, updated_at: Component.NowDated };
+        }
+        else if (Array.isArray(stateChange)) {
+            stateChange.forEach(value => {
+                if (stateChange[value[0]]) {
+                    dbprivate[value[0]] = value[1];
+                }
+            });
+        }
+        else {
+            throw TypeError('setState in parameter 1 not type function / array.');
+        }
+    }
+    state() {
+        return dbprivate[this.nameStateOfComponent].state;
+    }
+}
+export const Link = (props = [], params = '') => {
+    return { to: ($url, $string, $path, $type) => {
+            if (typeof $url === 'object') {
+                if ($type) {
+                    return `<a ${props} href="${routeUrl[$url]}" lavosted="link" path='${$path}' async="true">${$string}</a>`;
+                }
+                if (params) {
+                    return `<a ${props} href="${routeUrl[$url]}" lavosted="link" path='${$path}' async="true" params="true">${$string}</a>`;
+                }
+                else {
+                    return `<a ${props} href="${routeUrl[$url]}" lavosted="link" path='${$path}'>${$string}</a>`;
+                }
+            }
+            if (typeof $url === 'string') {
+                if ($type) {
+                    return `<a ${props} href="${base + $url}" lavosted="link" path='${$path}' async="true">${$string}</a>`;
+                }
+                if (params) {
+                    return `<a ${props} href="${base + $url}" lavosted="link" path='${$path}' async="true" params="true">${$string}</a>`;
+                }
+                else {
+                    return `<a ${props} href="${base + $url}" lavosted="link" path='${$path}'>${$string}</a>`;
+                }
+            }
+        } };
+};
 //# sourceMappingURL=routing-next-beta.js.map
