@@ -1,0 +1,26 @@
+{
+  "name": "lavosted.routing",
+  "version": "1.0.1",
+  "description": "Lavosted Routing is a lightweight single page application framework to speed up frontend work. Built using javascript and typescript makes this framework modern and there are service workers to cache resources.",
+  "main": "src/routing-next-beta.js",
+  "directories": {
+    "src": "src"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "server": "npx tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ferdiansyah0611/lavosted-routing.git"
+  },
+  "keywords": [
+    "lavosted"
+  ],
+  "author": "ferdiansyah0611",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ferdiansyah0611/lavosted-routing/issues"
+  },
+  "homepage": "https://github.com/ferdiansyah0611/lavosted-routing#readme"
+}
