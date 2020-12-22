@@ -185,7 +185,6 @@ export class Routing {
 			componentReady = '',
 			dataDebug = [],
 			configInherit = this._configRoute,
-			base = this._configRoute.BasePath,
 			/**
 			 * @description create console log request
 			 */
@@ -287,7 +286,7 @@ export class Routing {
 			 */
 			let Started = () => {
 				let EventClickChangePage = () => {
-					let linkRoute = document.querySelectorAll('a[lavosted="link')
+					let linkRoute = document.querySelectorAll('a[lavosted="link'), wait = false;
 					linkRoute.forEach(dataQuery => {
 						dataQuery.addEventListener('click', e => {e.preventDefault()
 							linkRoute.forEach(dataQuery2 => {if(dataQuery2.classList.contains('active')) {dataQuery2.classList.remove('active')}})
@@ -402,7 +401,7 @@ export class Routing {
 							var beforeEach = resultRoute.beforeEach(auth = () => {if(window.localStorage.getItem('user-account')) {return JSON.parse(window.localStorage.getItem('user-account'))}else{return false}})
 							if(beforeEach.hasOwnProperty('to') && !beforeEach.hasOwnProperty('next')){
 								statusRun = true
-								filterCustomAction(this._configRoute.BasePath + beforeEach.to)
+								filterCustomAction(this._configRoute.BasePath + beforeEach.to + '/')
 							}
 							if(!beforeEach.hasOwnProperty('to') && beforeEach.hasOwnProperty('next')){
 								statusRun = true
@@ -418,7 +417,7 @@ export class Routing {
 					if(e.target.getAttribute('path') !== 'undefined'){
 						filterCustomAction({url: e.target.getAttribute('href') + '/', path: e.target.getAttribute('path')})
 					}else{
-						filterCustomAction(e.target.getAttribute('href'))
+						filterCustomAction(e.target.getAttribute('href') + '/')
 					}
 				}
 				/**
@@ -621,7 +620,7 @@ export const Link = (props = [], params = '') => {
 	return{to: ($url, $string, $path, $type) => {
 		if(typeof $url === 'object') {
 			if($type) {
-				return tag.crt('a', {
+				return tag,crt('a', {
 					attr: `${props} href="${routeUrl[$url]}" lavosted="link" path='${$path}' async="true"`,
 					data: $string
 				})
@@ -641,18 +640,18 @@ export const Link = (props = [], params = '') => {
 		if(typeof $url === 'string') {
 			if($type) {
 				return tag.crt('a', {
-					attr: `${props} href="${Core.ENV.config.BasePath + $url}" lavosted="link" path='${$path}' async="true"`,
+					attr: `${props} href="${base+ $url}" lavosted="link" path='${$path}' async="true"`,
 					data: $string
 				})
 			}
 			if(params) {
 				return tag.crt('a', {
-					attr: `${props} href="${Core.ENV.config.BasePath + $url}" lavosted="link" path='${$path}' async="true" params="true"`,
+					attr: `${props} href="${base+ $url}" lavosted="link" path='${$path}' async="true" params="true"`,
 					data: $string
 				})
 			}else{
 				return tag.crt('a', {
-					attr: `${props} href="${Core.ENV.config.BasePath + $url}"` + 'lavosted="link"' + `path="${$path}"`,
+					attr: props + `href="${base+ $url}"` + 'lavosted="link"' + `path="${$path}"`,
 					data: $string
 				})
 			}
